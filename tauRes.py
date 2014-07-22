@@ -9,7 +9,7 @@ from calcTauSubstructure import TauSubstruct
 from TauClass import Tau
 
 # Open files
-infile = TFile('../pier/ntuples/user.mhodgkin.006921.TauPERF._00344.root')
+infile = TFile('../../pier/ntuples/user.mhodgkin.006921.TauPERF._00344.root')
 
 
 # retrieve the ntuple of interest
@@ -25,14 +25,19 @@ ch.SetBranchStatus("EventNumber",1)
 entries = ch.GetEntriesFast()
 
 output = TFile('resolutionHistos.root','RECREATE')
-h_1p=TH1F('h_1p','resolution of all 1 prong taus',40,-2.,2.)
-h_1p1p=TH1F('h_1p1p','resolution of all matched 1 prong taus',40,-2.,2.)
-h_3p=TH1F('h_3p','resolution of all 3 prong taus',40,-2.,2.)
-h_3p3p=TH1F('h_3p3p','resolution of all matched 3 prong taus',40,-2.,2.)
-h_trueprong=TH1F('h_trueprong','number of prongs',10,0.,10.)
-h_trueneutrals=TH1F('h_trueneutrals','number of neutrals',10,0.,10.)
-h_cellprong=TH1F('h_cellprong','number of prongs',10,0.,10.)
-h_cellneutrals=TH1F('h_cellneutrals','number of neutrals',10,0.,10.)
+h_reco1P1N=TH1F('h_reco1P1N','All reco 1p1n taus',20,-2.,2.)
+h_reco1P1N_true1P0N=TH1F('h_reco1P1N_true1P0N','Reco 1P1N true 1P0N',20,-2.,2.)
+h_reco1P1N_true1PXN=TH1F('h_reco1P1N_true1PXN','Reco 1P1N true 1PXN',20,-2.,2.)
+h_reco1P1N_true3P=TH1F('h_reco1P1N_true3p','Reco 1P1N true 3P',20,-2.,2.)
+
+
+h_3p=TH1F('h_3p','All 3 prong taus',20,-2.,2.)
+h_3p3p=TH1F('h_3p3p','True and reco 3 prong taus',20,-2.,2.)
+
+h_trueprong=TH1F('h_trueprong','number of prongs',5,0.,5.)
+h_trueneutrals=TH1F('h_trueneutrals','number of neutrals',5,0.,5.)
+h_cellprong=TH1F('h_cellprong','number of prongs',5,0.,5.)
+h_cellneutrals=TH1F('h_cellneutrals','number of neutrals',5,0.,5.)
 
 for jentry in xrange( entries ):
  # get the next tree in the ch and verify
@@ -67,20 +72,23 @@ for jentry in xrange( entries ):
             h_trueprong.Fill(trueTau.trueP)
             h_cellprong.Fill(tau.cellP)
 
-            if trueTau.trueP==1:
-               h_1p.Fill(res)
-               if tau.cellP==1:
-                  h_1p1p.Fill(res)
+            if tau.cellP==1 and tau.cellN==1:
+               if trueTau.trueP==1:
+                  if trueTau.trueN==1:
+                     h_reco1P1N.Fill(res)
+                  elif trueTau.trueN==0:
+                     h_reco1P1N_true1P0N.Fill(res)
+                  else:
+                     h_reco1P1N_true1PXN.Fill(res)
+               else:
+                  h_reco1P1N_true3p.Fill(res)
+
             else:
                h_3p.Fill(res)
                if tau.cellP==3:
                   h_3p3p.Fill(res)
 
    if jentry%100==0: print "event number",jentry
-
-
-
-c=TCanvas()
 
 output.Write()
 output.Close()
