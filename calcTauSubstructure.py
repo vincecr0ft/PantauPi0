@@ -19,10 +19,10 @@ from ROOT import gDirectory
 from TauClass import Tau
 
 ###################################################################################
-def deltaR(eta1,eta2,phi1,phi2):
-    dEta=eta1-eta2
-    dPhi=phi1-phi2
-    return (dEta*dEta+dPhi*dPhi)**0.5
+#def deltaR(eta1,eta2,phi1,phi2):
+ #   dEta=eta1-eta2
+  #  dPhi=phi1-phi2
+   # return (dEta*dEta+dPhi*dPhi)**0.5
 
 def pi0Cut(BDTScore,eta,nProng,flux):
     if nProng==1:
@@ -84,8 +84,8 @@ def TauSubstruct(ch,flux):
             for j in range(0,ch.tau_pantau_CellBased_NeutralEFOs_pt[i].size()):
                 thisCluster=ROOT.TLorentzVector(ch.tau_pantau_CellBased_NeutralEFOs_pt[i][j],ch.tau_pantau_CellBased_NeutralEFOs_eta[i][j],ch.tau_pantau_CellBased_NeutralEFOs_phi[i][j],ch.tau_pantau_CellBased_NeutralEFOs_m[i][j])
 
-                if deltaR(pi0.Eta(),thisCluster.Eta(),pi0.Phi(),thisCluster.Phi())<minDeltaR and abs(pi0.Pt()-thisCluster.Pt())<minDeltaPt:
-                    minDeltaR=deltaR(pi0.Eta(),thisCluster.Eta(),pi0.Phi(),thisCluster.Phi())
+                if pi0.DeltaR(thisCluster)<minDeltaR and abs(pi0.Pt()-thisCluster.Pt())<minDeltaPt:
+                    minDeltaR=pi0.DeltaR(thisCluster)
                     minDeltaPt = abs(pi0.Pt()-thisCluster.Pt())
                     
                     neutralCluster=thisCluster
