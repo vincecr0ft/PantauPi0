@@ -11,8 +11,6 @@
 
 import sys
 import os
-
-sys.argv.append( '-b' )
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
@@ -22,7 +20,7 @@ from TauClass import Tau
 
 # use this to access vector<vector<int> > (see end of this file)
 import PyCintex
-gROOT.ProcessLine('.L rdict.so')
+#gROOT.ProcessLine('.L /afs/cern.ch/user/v/vcroft/portal/pyTau/PantauPi0/rdict.so')
 
 
 ###################################################################################

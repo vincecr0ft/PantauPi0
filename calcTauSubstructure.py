@@ -19,35 +19,30 @@ from ROOT import gDirectory
 from TauClass import Tau
 
 ###################################################################################
-#def deltaR(eta1,eta2,phi1,phi2):
- #   dEta=eta1-eta2
-  #  dPhi=phi1-phi2
-   # return (dEta*dEta+dPhi*dPhi)**0.5
-
-def pi0Cut(BDTScore,eta,nProng,flux):
+def pi0Cut(BDTScore,eta,nProng,shift):
     if nProng==1:
         if(abs(eta) < 0.8):
-            if(BDTScore < -0.06 + flux):return False
+            if(BDTScore < -0.06 + shift):return False
         elif(abs(eta) < 1.4):
-            if(BDTScore< -0.14 + flux):return False
+            if(BDTScore< -0.14 + shift):return False
         elif(abs(eta) < 1.5):
-            if(BDTScore< + 0.01 + flux): return False
+            if(BDTScore< + 0.01 + shift): return False
         elif(abs(eta) < 1.9):
-            if(BDTScore < -0.10 + flux): return False
+            if(BDTScore < -0.10 + shift): return False
         elif(abs(eta) < 9.9):
-            if(BDTScore < -0.01 + flux): return False
+            if(BDTScore < -0.01 + shift): return False
     elif nProng==3:
         if(abs(eta) < 0.8):
-            if(BDTScore < +0.43 + flux): return False
+            if(BDTScore < +0.43 + shift): return False
         elif(abs(eta) < 1.4):
-            if(BDTScore < +0.51 + flux): return False
+            if(BDTScore < +0.51 + shift): return False
         elif(abs(eta) < 1.5):
-            if(BDTScore < +0.48 + flux): return False
+            if(BDTScore < +0.48 + shift): return False
         elif(abs(eta) < 1.9):
-            if(BDTScore < +0.66 + flux): return False
+            if(BDTScore < +0.66 + shift): return False
         elif(abs(eta) < 9.9):
-            if(BDTScore < +0.65 + flux): return False 
-
+            if(BDTScore < +0.65 + shift): return False 
+    if shift<-1: print "shift me sideways with a pitchfork like %f"%shift
     return True
 
 ###################################################################################
@@ -70,10 +65,19 @@ def TauSubstruct(ch,flux):
 
             cellSum+=chargedCluster
         pi0s=[]
+
+        neutralTrigger=False
+        for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
+            if flux<-1 and pi0Cut(ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],nProng,0.0): neutralTrigger=True
+
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
             BDTScore=ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j]
             eta=ch.tau_pi0Bonn_Pi0Cluster_eta[i][j]
-            if pi0Cut(BDTScore,eta,nProng,flux):
+            if neutralTrigger:  
+                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])              
+                pi0s.append(neutralCluster)
+
+            elif flux>-1 and pi0Cut(BDTScore,eta,nProng,flux):
                 neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])
                 pi0s.append(neutralCluster)
         nPi0=len(pi0s)
