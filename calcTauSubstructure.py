@@ -66,21 +66,27 @@ def TauSubstruct(ch,flux):
             cellSum+=chargedCluster
         pi0s=[]
 
-        neutralTrigger=False
+        #first get regular number of neutrals
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
-            if flux<-1 and pi0Cut(ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],nProng,0.0): neutralTrigger=True
-
+            if pi0Cut(ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],nProng,0.0): 
+                nPi0+=1
+        #loop over neturals
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
             BDTScore=ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j]
             eta=ch.tau_pi0Bonn_Pi0Cluster_eta[i][j]
-            if neutralTrigger:  
-                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])              
-                pi0s.append(neutralCluster)
 
-            elif flux>-1 and pi0Cut(BDTScore,eta,nProng,flux):
+            #regular cuts
+            if flux>-1 and flux<1 and pi0Cut(BDTScore,eta,nProng,flux):
                 neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])
                 pi0s.append(neutralCluster)
-        nPi0=len(pi0s)
+            #cons
+            elif flux>1 and nPi0>0:  
+                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])              
+                pi0s.append(neutralCluster)
+            #public
+            elif flux<-1:
+                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],ch.tau_pi0Bonn_Pi0Cluster_E[i][j])              
+                pi0s.append(neutralCluster)
         for pi0 in pi0s:
             neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
             minDeltaR=10.

@@ -37,8 +37,11 @@ entries = ch.GetEntriesFast()
 a={"name":"normal","value":0.0} 
 b={"name":"tightened","value":0.25} 
 c={"name":"loosened","value":-0.25}
-d={"name":"public","value":-2.0}
-cuts=[a,b,c,d]
+d={"name":"loose","value":0.5} 
+e={"name":"tight","value":-0.5}
+f={"name":"public","value":-2.0}
+g={"name":"cons","value":2.0}
+cuts=[a,b,c,d,e,f,g]
 
 output = TFile('resolutionHistos.root','RECREATE')
 
@@ -84,28 +87,37 @@ for jentry in xrange( entries ):
                cut["name"].h_cellprong.Fill(tau.cellP)
                cut["name"].h_dR.Fill(dR)
 
- 
-               if tau.cellP==1 and tau.cellN==0:
-                  if trueTau.trueP==1:
-                     if trueTau.trueN==0:
-                        cut["name"].h_reco1P0N_true1P0N.Fill(res)
-                     elif trueTau.trueN==1:
-                        cut["name"].h_reco1P0N_true1P1N.Fill(res)
+               if tau.pt>15000:
+                  if tau.cellP==1 and tau.cellN==0:
+                     if trueTau.trueP==1:
+                        if trueTau.trueN==0:
+                           cut["name"].h_reco1P0N_true1P0N.Fill(res)
+                        elif trueTau.trueN==1:
+                           cut["name"].h_reco1P0N_true1P1N.Fill(res)
+                        else:
+                           cut["name"].h_reco1P0N_true1PXN.Fill(res)
                      else:
-                        cut["name"].h_reco1P0N_true1PXN.Fill(res)
-                  else:
-                     cut["name"].h_reco1P0N_true3P.Fill(res)
-               if tau.cellP==1 and tau.cellN==1:
-                  if trueTau.trueP==1:
-                     if trueTau.trueN==0:
-                        cut["name"].h_reco1P1N_true1P0N.Fill(res)
-                     elif trueTau.trueN==1:
-                        cut["name"].h_reco1P1N_true1P1N.Fill(res)
+                        cut["name"].h_reco1P0N_true3P.Fill(res)
+                  elif tau.cellP==1 and tau.cellN==1:
+                     if trueTau.trueP==1:
+                        if trueTau.trueN==0:
+                           cut["name"].h_reco1P1N_true1P0N.Fill(res)
+                        elif trueTau.trueN==1:
+                           cut["name"].h_reco1P1N_true1P1N.Fill(res)
+                        else:
+                           cut["name"].h_reco1P1N_true1PXN.Fill(res)
                      else:
-                        cut["name"].h_reco1P1N_true1PXN.Fill(res)
-                  else:
-                     cut["name"].h_reco1P1N_true3P.Fill(res)
-
+                        cut["name"].h_reco1P1N_true3P.Fill(res)
+                  elif tau.cellP==1 and tau.cellN>1:
+                     if trueTau.trueP==1:
+                        if trueTau.trueN==0:
+                           cut["name"].h_reco1PXN_true1P0N.Fill(res)
+                        elif trueTau.trueN==1:
+                           cut["name"].h_reco1PXN_true1P1N.Fill(res)
+                        else:
+                           cut["name"].h_reco1PXN_true1PXN.Fill(res)
+                     else:
+                        cut["name"].h_reco1PXN_true3P.Fill(res)
    if jentry%100==0: print "event number",jentry
 
 output.Write()
