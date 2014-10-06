@@ -59,6 +59,8 @@ def TauDecayMC(ch):
 
         # create TLV for 4vec sum (all + visible)    
         visSum = ROOT.TLorentzVector(0., 0.,0.,0.,)
+        neutralSum = ROOT.TLorentzVector(0., 0.,0.,0.,)
+        neutralLead = ROOT.TLorentzVector(0., 0.,0.,0.,)
 
         nProng=0
         nPi0=0
@@ -82,6 +84,8 @@ def TauDecayMC(ch):
             # count
             if abs(c_pdgId) in [111,311,221,223,130,310]:
                 nPi0+=1
+                neutralSum+=c_TLV
+                if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
             elif abs(c_pdgId) in [211,321,323]:
                 nProng+=1
 
@@ -98,8 +102,13 @@ def TauDecayMC(ch):
         visTau=Tau(visSum.Pt(),visSum.Eta(),visSum.Phi(),visSum.M())
         visTau.trueP=nProng
         visTau.trueN=nPi0
+        if nPi0>0:
+            visTau.trueSum=neutralSum.Pt()
+            visTau.trueLead=neutralLead.Pt()
+            if nPi0==1 and neutralSum.Pt()!=neutralLead.Pt():
+                print "Danger, Will Robinson! Danger!"
         visTaus.append(visTau)
-        
+
     #end mc loop
     return visTaus
 #end method
