@@ -64,6 +64,7 @@ def TauDecayMC(ch):
 
         nProng=0
         nPi0=0
+        Exotic=False
         # loop on childrens
         for cc in range(0,ch.mc_child_index[i].size()):
             # get index of child inside mc_ collection
@@ -82,13 +83,20 @@ def TauDecayMC(ch):
             if not isGoodDaughter(c_stat, c_barcode, c_vxcode):continue
 
             # count
-            if abs(c_pdgId) in [111,311,221,223,130,310]:
+            if abs(c_pdgId) == 111:
                 nPi0+=1
                 neutralSum+=c_TLV
                 if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
-            elif abs(c_pdgId) in [211,321,323]:
+            elif abs(c_pdgId) ==211:
                 nProng+=1
-
+            elif abs(c_pdgId) in [311,221,223,130,310]:
+                Exotic=True
+                nPi0+=1
+                neutralSum+=c_TLV
+                if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
+            elif abs(c_pdgId) in [321,323]:
+                nProng+=1
+                Exotic=True
                 
             # skip neutrinos 
             if abs(c_pdgId) in [12,14,16]:
@@ -99,9 +107,10 @@ def TauDecayMC(ch):
         # end children loop
 
         # now we have visible Pt, Et, etc. for this tau
-        visTau=Tau(visSum.Pt(),visSum.Eta(),visSum.Phi(),visSum.M())
+        visTau=Tau(visSum)
         visTau.trueP=nProng
         visTau.trueN=nPi0
+        visTau.ExoticFlag=Exotic
         if nPi0>0:
             visTau.trueSum=neutralSum.Pt()
             visTau.trueLead=neutralLead.Pt()
