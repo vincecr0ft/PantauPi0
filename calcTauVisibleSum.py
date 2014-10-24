@@ -64,6 +64,7 @@ def TauDecayMC(ch):
 
         nProng=0
         nPi0=0
+        Exotic=False
         # loop on childrens
         for cc in range(0,ch.mc_child_index[i].size()):
             # get index of child inside mc_ collection
@@ -82,7 +83,7 @@ def TauDecayMC(ch):
             if not isGoodDaughter(c_stat, c_barcode, c_vxcode):continue
 
             # count
-            if abs(c_pdgId) in [111,311,221,223,130,310]:
+            if abs(c_pdgId) in [111]:
                 nPi0+=1
                 neutralSum+=c_TLV
                 if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
@@ -93,20 +94,53 @@ def TauDecayMC(ch):
             # skip neutrinos 
             if abs(c_pdgId) in [12,14,16]:
                 continue
+            if abs(c_pdgId) in [311,221,223,130,310]:
+                Exotic=True
+                continue
 
             # use remaining children for visible 4vec
             visSum+=c_TLV
         # end children loop
+        
 
         # now we have visible Pt, Et, etc. for this tau
         visTau=Tau(visSum.Pt(),visSum.Eta(),visSum.Phi(),visSum.M())
         visTau.trueP=nProng
         visTau.trueN=nPi0
+        visTau.ExoticFlag=Exotic
+
         if nPi0>0:
             visTau.trueSum=neutralSum.Pt()
             visTau.trueLead=neutralLead.Pt()
             if nPi0==1 and neutralSum.Pt()!=neutralLead.Pt():
                 print "Danger, Will Robinson! Danger!"
+
+        #get std trueTau
+        dR=10.
+        dPt=10000
+        trueTau = ROOT.TLorentzVector(0., 0.,0.,0.,)
+        visP=0
+        visN=0
+        for j in range(0,ch.trueTau_n):
+            truePt=ch.trueTau_vis_Et[j]
+            trueEta=ch.trueTau_vis_eta[j]
+            truePhi=ch.trueTau_vis_phi[j]
+            trueM=ch.trueTau_vis_m[j]
+            trueTauCand=ROOT.TLorentzVector(0.,0.,0.,0.)
+            trueTauCand.SetPtEtaPhiM(truePt,trueEta,truePhi,trueM)
+            if visSum.DeltaR(trueTauCand)<dR and abs(visSum.Pt()-trueTauCand.Pt())<dPt:
+                dPt=abs(visSum.Pt()-trueTauCand.Pt())
+                dR=visSum.DeltaR(trueTauCand)
+                visTau.trueTau=trueTauCand
+                trueTau=trueTauCand
+
+                visP=ch.trueTau_nProng[j]
+                visN=ch.trueTau_nPi0[j]
+
+#        if nProng!=visP: print 'prong error!',nProng,' ',visP,' Exotic? ',Exotic
+#        if nPi0!=visN: print 'pi error!',nPi0,' ',visN,' exotic? ',Exotic
+
+        
         visTaus.append(visTau)
 
     #end mc loop

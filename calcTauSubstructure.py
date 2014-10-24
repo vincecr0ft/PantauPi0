@@ -22,26 +22,26 @@ from TauClass import Tau
 def pi0Cut(BDTScore,eta,nProng,shift):
     if nProng==1:
         if(abs(eta) < 0.8):
-            if(BDTScore < -0.06 + shift):return False
+            if(BDTScore < 0.46 + shift):return False
         elif(abs(eta) < 1.4):
-            if(BDTScore< -0.14 + shift):return False
+            if(BDTScore< 0.39 + shift):return False
         elif(abs(eta) < 1.5):
-            if(BDTScore< + 0.01 + shift): return False
+            if(BDTScore< + 0.51 + shift): return False
         elif(abs(eta) < 1.9):
-            if(BDTScore < -0.10 + shift): return False
+            if(BDTScore < 0.47 + shift): return False
         elif(abs(eta) < 9.9):
-            if(BDTScore < -0.01 + shift): return False
+            if(BDTScore < 0.54 + shift): return False
     elif nProng==3:
         if(abs(eta) < 0.8):
-            if(BDTScore < +0.43 + shift): return False
+            if(BDTScore < +0.47 + shift): return False
         elif(abs(eta) < 1.4):
-            if(BDTScore < +0.51 + shift): return False
+            if(BDTScore < +0.52 + shift): return False
         elif(abs(eta) < 1.5):
-            if(BDTScore < +0.48 + shift): return False
+            if(BDTScore < +0.60 + shift): return False
         elif(abs(eta) < 1.9):
-            if(BDTScore < +0.66 + shift): return False
+            if(BDTScore < +0.55 + shift): return False
         elif(abs(eta) < 9.9):
-            if(BDTScore < +0.65 + shift): return False 
+            if(BDTScore < +0.50 + shift): return False 
     if shift<-1: print "shift me sideways with a pitchfork like %f"%shift
     return True
 
@@ -79,23 +79,28 @@ def TauSubstruct(ch,flux,Cutvalue):
         nProng=0
         nPi0=0
         
+        #find axis
+        axis =ROOT.TLorentzVector(0.,0.,0.,0.)
+        axis.SetPtEtaPhiM(ch.tau_pt[i],ch.tau_calcVars_interAxis_eta[i],ch.tau_calcVars_interAxis_phi[i],0.)
+
+
         # add charged EFOs 
         nProng=ch.tau_pantau_CellBased_ChargedEFOs_pt[i].size()
 
         for j in range(0,nProng):
             chargedCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
             chargedCluster.SetPtEtaPhiM(ch.tau_pantau_CellBased_ChargedEFOs_pt[i][j],ch.tau_pantau_CellBased_ChargedEFOs_eta[i][j],ch.tau_pantau_CellBased_ChargedEFOs_phi[i][j],0)
-
-            cellSum+=chargedCluster
+            if chargedCluster.DeltaR(axis)<0.2: cellSum+=chargedCluster
 
         #first get regular number of neutrals
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
             BDTScore=ch.tau_pi0Bonn_Pi0Cluster_BDTScore[i][j]
             pt=ch.tau_pi0Bonn_Pi0Cluster_pt[i][j]
             eta=ch.tau_pi0Bonn_Pi0Cluster_eta[i][j]
-
             if pi0Cut(BDTScore,eta,nProng,0.0) and ptCut(pt,eta,0.0): 
-                nPi0+=1
+                neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
+                neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
+                if neutralCluster.DeltaR(axis)<0.2:nPi0+=1
         pi0s=[]
         #loop over neturals to add to pi0s
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
@@ -105,32 +110,18 @@ def TauSubstruct(ch,flux,Cutvalue):
 
             #regular cuts
             if flux>-1 and flux<1 and pi0Cut(BDTScore,eta,nProng,flux) and ptCut(pt,eta,Cutvalue):
-                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
-                pi0s.append(neutralCluster)
+                neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
+                neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
+                if neutralCluster.DeltaR(axis)<0.2: pi0s.append(neutralCluster)
             #public
             elif flux<-1 and ptCut(pt,eta,Cutvalue):
-                neutralCluster=ROOT.TLorentzVector(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
-                pi0s.append(neutralCluster)
+                neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
+                neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
+                if neutralCluster.DeltaR(axis)<0.2: pi0s.append(neutralCluster)
 
 
-
-
-        #get neutral EFOs
-        EFOs=[]
-        for j in range(0,ch.tau_pantau_CellBased_NeutralEFOs_pt[i].size()):
-            EFOs.append(ROOT.TLorentzVector(ch.tau_pantau_CellBased_NeutralEFOs_pt[i][j],ch.tau_pantau_CellBased_NeutralEFOs_eta[i][j],ch.tau_pantau_CellBased_NeutralEFOs_phi[i][j],0.))
-
-        #Get EFO closest to pi0
-        for pi0 in pi0s:
-            minDeltaR=10.
-            minDeltaPt=10000000.
-            for EFO in EFOs:
-                if pi0.DeltaR(EFO)<minDeltaR and abs(pi0.Pt()-EFO.Pt())<minDeltaPt:
-                    minDeltaR=pi0.DeltaR(EFO)
-                    minDeltaPt = abs(pi0.Pt()-EFO.Pt())
-                    neutralCluster=EFO
-
-            #add closest to vectors
+        for pi in pi0s:
+            #add to vectors
             cellSum+=neutralCluster
             neutralSum+=neutralCluster
             #if highest pt make it lead
@@ -140,7 +131,7 @@ def TauSubstruct(ch,flux,Cutvalue):
         cellTau.cellP=nProng
         cellTau.cellN=nPi0
         cellTau.cellPt=ch.tau_pi0Bonn_visTau_pt[i]
-
+        cellTau.nClusters=len(pi0s)
         if nPi0>0:
             cellTau.cellSum=neutralSum.Pt()        
             cellTau.cellLead=neutralLead.Pt()
@@ -156,3 +147,22 @@ def TauSubstruct(ch,flux,Cutvalue):
     return cellTaus
 #end method
 ############################################################
+
+
+"""
+        #get neutral EFOs
+        EFOs=[]
+        for j in range(0,ch.tau_pantau_CellBased_NeutralEFOs_pt[i].size()):
+            EFOs.append(ROOT.TLorentzVector(ch.tau_pantau_CellBased_NeutralEFOs_pt[i][j],ch.tau_pantau_CellBased_NeutralEFOs_eta[i][j],ch.tau_pantau_CellBased_NeutralEFOs_phi[i][j],0.))
+
+        #Get EFO closest to pi0
+        for pi0 in pi0s:
+            minDeltaR=10.
+            minDeltaPt=10000000.
+            for EFO in EFOs:
+                if pi0.DeltaR(EFO)<minDeltaR and abs(pi0.Pt()-EFO.Pt())<minDeltaPt:
+                    minDeltaR=pi0.DeltaR(EFO)
+                    minDeltaPt = abs(pi0.Pt()-EFO.Pt())
+                    neutralCluster=EFO
+
+"""

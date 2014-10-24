@@ -9,7 +9,7 @@ from calcTauVisibleSum import TauDecayMC
 from calcTauSubstructure import TauSubstruct
 from TauClass import Tau
 #from HistoClass import ListoHistos
-from testClass import ListoHistos
+from HistoClass import ListoHistos
 
 import sys
 
@@ -61,7 +61,6 @@ v={"name":"Loose-Tight","BDTvalue":-0.25,"Cutvalue":-250}
 w={"name":"ExtraLoose-Tight","BDTvalue":-0.5,"Cutvalue":-250} 
 x={"name":"Public-Tight","BDTvalue":-2,"Cutvalue":-250} 
 y={"name":"Tight-Tight","BDTvalue":0.25,"Cutvalue":-250} 
-
 
 cuts=[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y]
 bdtcuts=['BDTnone','BDTloose','BDTmedium','BDTtight']
@@ -116,8 +115,8 @@ for jentry in xrange( entries ):
             if dR<0.2:
    
                res=(tau.pt-trueTau.pt)/trueTau.pt
-               if tau.pt>15000 and abs(tau.eta)<2.5:
-
+               if tau.pt>15000 and abs(tau.eta)<2.5 and not trueTau.ExoticFlag:
+#                  print 'matching %f with %f and eta at %f -%f'%(tau.pt,trueTau.pt,tau.eta,trueTau.eta)
                   for bdt in bdtcuts:
                      ok =False
                      if bdt=="BDTnone":ok=True
@@ -128,6 +127,9 @@ for jentry in xrange( entries ):
                      if ok==True:
                         
                         if trueTau.trueN>0 and tau.cellN>0:
+                           if trueTau.trueLead<10.:
+                              print 'skipping'
+                              continue
                            neutralRes=(tau.cellSum-trueTau.trueSum)/trueTau.trueSum
                            leadPi0Res=(tau.cellLead-trueTau.trueLead)/trueTau.trueLead
 
