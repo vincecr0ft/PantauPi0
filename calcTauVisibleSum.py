@@ -89,16 +89,11 @@ def TauDecayMC(ch):
                 if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
             elif abs(c_pdgId) ==211:
                 nProng+=1
-            elif abs(c_pdgId) in [311,221,223,130,310]:
-                Exotic=True
-                nPi0+=1
-                neutralSum+=c_TLV
-                if c_TLV.Pt() > neutralLead.Pt():neutralLead=c_TLV
-            elif abs(c_pdgId) in [321,323]:
-                nProng+=1
-                Exotic=True
                 
-            # skip neutrinos 
+            # skip neutrinos and exotic decays 
+            if abs(c_pdgId) in [311,221,223,130,310,321,323]:
+                Exotic=True
+                continue
             if abs(c_pdgId) in [12,14,16]:
                 continue
 
