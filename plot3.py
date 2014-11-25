@@ -24,7 +24,7 @@ o={"name":"ExtraLoose-ExtraLoose","BDTvalue":-0.5,"Cutvalue":1000}
 p={"name":"Public-ExtraLoose","BDTvalue":-2,"Cutvalue":1000}
 
 
-cuts=[a,d,m]
+cuts=[a,d,c]
 #cuts=[a,b,c,d,e,f,g,h,i,j,k,l]
 modes={'1P0N-1P0N':2,'1P0N-1P1N':4,'1P0N-1PXN':6,'1P0N-3P':8,
        '1P1N-1P0N':2,'1P1N-1P1N':4,'1P1N-1PXN':6,'1P1N-3P':8,
@@ -33,12 +33,9 @@ modes={'1P0N-1P0N':2,'1P0N-1P1N':4,'1P0N-1PXN':6,'1P0N-3P':8,
        '3PXN-1P':2,'3PXN-3P0N':6,'3PXN-3PXN':8}
 
 #BDTs=['BDTnone']
-BDTs=['BDTnone','BDTloose','BDTmedium','BDTtight']
+BDTs=['BDTnone','BDTloose','BDTmedium','BDTtight','ExoticVeto']
 plots={}
 inclusive={}
-Pi0BDT=TH1F('Pi0BDT','Pi0BDT',4,0,4)
-Pi0BDT=TH1F('Pi0Pt','Pi0Pt',4,0,4)
-Grid=TH2F('grid','grid',4,0,4,4,0,4)
 for cut in cuts:
    cut[cut['name']]=TH1F(cut['name'],cut['name'],40,-1.,1.)
    for bdt in BDTs:
@@ -69,13 +66,13 @@ for cut in cuts:
    cut['BDTloose'].SetLineColor(4)
    cut['BDTmedium'].SetLineColor(6)
    cut['BDTtight'].SetLineColor(2)
+   cut['ExoticVeto'].SetLineColor(8)
 
    cut['BDTnone'].Draw()
    cut['BDTloose'].Draw('same')
    cut['BDTmedium'].Draw('same')
    cut['BDTtight'].Draw('same')
-
-
+   cut['ExoticVeto'].Draw('same')
 
    cut[cut['name']].Add(cut['BDTnone'])
    cut['sig0']=cut[cut['name']].GetRMS()
@@ -106,6 +103,38 @@ inclusive['inc_3PXN Public-Normal_BDTnone'].SetFillColor(2)
 inclusive['inc_3PXN Public-Normal_BDTnone'].SetFillStyle(3017)
 inclusive['inc_3PXN Public-Normal_BDTnone'].Draw("same")
 #inclusive['stack_3PXN Public-Normal_BDTnone'].Draw("same")
+sig0=inclusive['inc_3PXN Public-Normal_BDTnone'].GetRMS()
+temp=inclusive['inc_3PXN Public-Normal_BDTnone'].Clone()
+lower=temp.GetMean()-3*sig0
+upper=temp.GetMean()+3*sig0
+for bin in range(1,temp.GetNbinsX()+1):
+   thisbin=temp.GetBinCenter(bin)
+   if thisbin<lower or thisbin>upper:
+      temp.SetBinContent(bin,0)
+publicRMS=temp.GetRMS()
+sig0=inclusive['inc_3PXN Normal-Normal_BDTnone'].GetRMS()
+temp=inclusive['inc_3PXN Normal-Normal_BDTnone'].Clone()
+lower=temp.GetMean()-3*sig0
+upper=temp.GetMean()+3*sig0
+for bin in range(1,temp.GetNbinsX()+1):
+   thisbin=temp.GetBinCenter(bin)
+   if thisbin<lower or thisbin>upper:
+      temp.SetBinContent(bin,0)
+normalRMS=temp.GetRMS()
+
+
+leg3PXN=TLegend(0.58,0.42,0.86,0.88)
+leg3PXN.SetBorderSize(0)
+leg3PXN.SetFillColor(0)
+leg3PXN.SetTextFont(62)
+leg3PXN.SetTextSize(0.03)
+RMSpublic=publicRMS-publicRMS%0.001
+RMSnormal=normalRMS-normalRMS%0.001
+
+leg3PXN.AddEntry(inclusive['inc_3PXN Normal-Normal_BDTnone'],'3PXN-3PXN normal '+str(RMSnormal),"lpf")
+leg3PXN.AddEntry(inclusive['inc_3PXN Public-Normal_BDTnone'],'3PXN-3PXN all neutrals '+str(RMSpublic),"lpf")
+
+leg3PXN.Draw()
 
 
 
@@ -145,11 +174,11 @@ plots['NeutralSum'].cd()
 cuts[0]['neutralSum BDTnone'].SetFillColor(2)
 cuts[0]['neutralSum BDTnone'].SetFillStyle(3017)
 cuts[0]['neutralSum BDTnone'].SetStats(0)
-cuts[0]['neutralSum BDTnone'].DrawNormalized()
+cuts[0]['neutralSum BDTnone'].Draw()
 cuts[1]['neutralSum BDTnone'].SetFillColor(4)
 cuts[1]['neutralSum BDTnone'].SetFillStyle(3017)
 cuts[1]['neutralSum BDTnone'].SetStats(0)
-cuts[1]['neutralSum BDTnone'].DrawNormalized("same")
+cuts[1]['neutralSum BDTnone'].Draw("same")
 
 
 leg1=TLegend(0.58,0.42,0.86,0.88)
@@ -167,11 +196,11 @@ plots['NeutralLead'].cd()
 cuts[0]['neutralLead BDTnone'].SetFillColor(2)
 cuts[0]['neutralLead BDTnone'].SetFillStyle(3017)
 cuts[0]['neutralLead BDTnone'].SetStats(0)
-cuts[0]['neutralLead BDTnone'].DrawNormalized()
+cuts[0]['neutralLead BDTnone'].Draw()
 cuts[1]['neutralLead BDTnone'].SetFillColor(4)
 cuts[1]['neutralLead BDTnone'].SetFillStyle(3017)
 cuts[1]['neutralLead BDTnone'].SetStats(0)
-cuts[1]['neutralLead BDTnone'].DrawNormalized("same")
+cuts[1]['neutralLead BDTnone'].Draw("same")
 
 leg2=TLegend(0.58,0.42,0.86,0.88)
 leg2.SetBorderSize(0)

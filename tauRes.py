@@ -8,8 +8,8 @@ from ROOT import gROOT
 from calcTauVisibleSum import TauDecayMC
 from calcTauSubstructure import TauSubstruct
 from TauClass import Tau
-#from HistoClass import ListoHistos
 from HistoClass import ListoHistos
+from CutGrid import CutList
 
 import sys
 
@@ -32,38 +32,8 @@ ch.SetBranchStatus("EventNumber",1)
 
 entries = ch.GetEntriesFast()
 
-a={"name":"Normal-Normal","BDTvalue":0.0,"Cutvalue":0.0} 
-b={"name":"Loose-Normal","BDTvalue":-0.25,"Cutvalue":0.0} 
-c={"name":"ExtraLoose-Normal","BDTvalue":-0.5,"Cutvalue":0.0} 
-d={"name":"Public-Normal","BDTvalue":-2.0,"Cutvalue":0.0} 
-e={"name":"Tight-Normal","BDTvalue":0.25,"Cutvalue":0.0} 
-
-f={"name":"Normal-Loose","BDTvalue":0.0,"Cutvalue":250} 
-g={"name":"Loose-Loose","BDTvalue":-0.25,"Cutvalue":250} 
-h={"name":"ExtraLoose-Loose","BDTvalue":-0.5,"Cutvalue":250} 
-i={"name":"Public-Loose","BDTvalue":-2,"Cutvalue":250} 
-j={"name":"Tight-Loose","BDTvalue":0.25,"Cutvalue":250} 
-
-k={"name":"Normal-Looser","BDTvalue":0.0,"Cutvalue":500} 
-l={"name":"Loose-Looser","BDTvalue":-0.25,"Cutvalue":500} 
-m={"name":"ExtraLoose-Looser","BDTvalue":-0.5,"Cutvalue":500} 
-n={"name":"Public-Looser","BDTvalue":-2,"Cutvalue":500} 
-o={"name":"Tight-Looser","BDTvalue":0.25,"Cutvalue":500} 
-
-p={"name":"Normal-ExtraLoose","BDTvalue":0.0,"Cutvalue":1000} 
-q={"name":"Loose-ExtraLoose","BDTvalue":-0.25,"Cutvalue":1000} 
-r={"name":"ExtraLoose-ExtraLoose","BDTvalue":-0.5,"Cutvalue":1000} 
-s={"name":"Public-ExtraLoose","BDTvalue":-2,"Cutvalue":1000} 
-t={"name":"Tight-ExtraLoose","BDTvalue":0.25,"Cutvalue":1000} 
-
-u={"name":"Normal-Tight","BDTvalue":0.0,"Cutvalue":-250} 
-v={"name":"Loose-Tight","BDTvalue":-0.25,"Cutvalue":-250} 
-w={"name":"ExtraLoose-Tight","BDTvalue":-0.5,"Cutvalue":-250} 
-x={"name":"Public-Tight","BDTvalue":-2,"Cutvalue":-250} 
-y={"name":"Tight-Tight","BDTvalue":0.25,"Cutvalue":-250} 
-
-cuts=[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y]
-bdtcuts=['BDTnone','BDTloose','BDTmedium','BDTtight']
+cuts=CutList()
+bdtcuts=['BDTnone','BDTloose','BDTmedium','BDTtight','ExoticVeto']
 
 selection={'name':bdtcuts}
 plots=['1P0N-1P0N','1P0N-1P1N','1P0N-1PXN','1P0N-3P',
@@ -107,15 +77,17 @@ for jentry in xrange( entries ):
       for tau in cellTaus:
 
          for trueTau in visTaus:
-            Pi=3.14159265359
-            dEta=tau.eta-trueTau.eta
-            dPhi=Pi-abs(abs(tau.phi-trueTau.phi)-Pi)
-            dR=(dEta*dEta+dPhi*dPhi)**0.5
+#            Pi=3.14159265359
+#            dEta=tau.eta-trueTau.eta
+#            dPhi=Pi-abs(abs(tau.phi-trueTau.phi)-Pi)
+#            dR=(dEta*dEta+dPhi*dPhi)**0.5
 
-            if dR<0.2:
+            dR=tau.cellTau.DeltaR(trueTau.trueTau)
+
+            if dR<0.2 and tau.pt>15000 and abs(tau.eta)<2.5:
    
                res=(tau.pt-trueTau.pt)/trueTau.pt
-               if tau.pt>15000 and abs(tau.eta)<2.5 and not trueTau.ExoticFlag:
+               if tau.pt>15000 and abs(tau.eta)<2.5:
 #                  print 'matching %f with %f and eta at %f -%f'%(tau.pt,trueTau.pt,tau.eta,trueTau.eta)
                   for bdt in bdtcuts:
                      ok =False
@@ -123,37 +95,55 @@ for jentry in xrange( entries ):
                      if bdt=="BDTloose":ok=tau.BDTloose
                      if bdt=="BDTmedium":ok=tau.BDTmedium
                      if bdt=="BDTtight":ok=tau.BDTtight
-
+                     if bdt=="ExoticVeto":ok=not trueTau.ExoticVeto
                      if ok==True:
                         
-                        if trueTau.trueN>0 and tau.cellN>0:
-                           if trueTau.trueLead<10.:
-                              print 'skipping'
-                              continue
+                        #make standard values
+                        if trueTau.trueN>0 and tau.cellN>0 and trueTau.trueLead>10:
                            neutralRes=(tau.cellSum-trueTau.trueSum)/trueTau.trueSum
                            leadPi0Res=(tau.cellLead-trueTau.trueLead)/trueTau.trueLead
-
                            cut[bdt].histos['sumRes'].Fill(neutralRes)
                            cut[bdt].histos['leadRes'].Fill(leadPi0Res)
-                        
+                        #formerly used for checks, after bug fix currently not used.
+                        elif trueTau.trueLead<10. and trueTau.trueN>0:
+                           trueTau.trueN=0
+
+                        #check nominal values
                         if first:
                            cellRes=(tau.cellPt-trueTau.pt)/trueTau.pt                     
                            cut[bdt].histos['cellres'].Fill(res-cellRes)
+                           cut[bdt].histos['cellbased'].Fill((tau.cellTau.Pt()-trueTau.pt)/trueTau.pt)
+                           cut[bdt].histos['PanTau'].Fill((tau.panTauPt-trueTau.pt)/trueTau.pt)
+
+                        #set Cell ID
+                        if tau.cellP==1:
+                           if tau.cellN==0:tau.CellID=0
+                           elif tau.cellN==1:tau.CellID=1
+                           else: tau.CellID=2
+                        elif tau.cellP==3:
+                           if tau.cellN==0:tau.CellID=3
+                           else: tau.CellID=4
+                        else: tau.CellID=5
 
                         if trueTau.trueP==1:
                            if trueTau.trueN==0:
+                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P0N'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0: cut[bdt].histos['1P0N-1P0N'].Fill(res)
                                  elif tau.cellN==1:cut[bdt].histos['1P0N-1P1N'].Fill(res)
                                  else:  cut[bdt].histos['1P0N-1PXN'].Fill(res)
                               else:  cut[bdt].histos['1P0N-3P'].Fill(res)
                            elif trueTau.trueN==1:
+                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P1N'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0:  cut[bdt].histos['1P1N-1P0N'].Fill(res)
-                                 elif tau.cellN==1: cut[bdt].histos['1P1N-1P1N'].Fill(res)
+                                 elif tau.cellN==1: 
+                                    cut[bdt].histos['1P1N-1P1N'].Fill(res)
+                                    cut[bdt].histos['1Pneutral'].Fill(neutralRes)
                                  else:  cut[bdt].histos['1P1N-1PXN'].Fill(res)
                               else:  cut[bdt].histos['1P1N-3P'].Fill(res)
                            else:
+                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1PXN'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0:  cut[bdt].histos['1PXN-1P0N'].Fill(res)
                                  elif tau.cellN==1: cut[bdt].histos['1PXN-1P1N'].Fill(res)
@@ -161,16 +151,19 @@ for jentry in xrange( entries ):
                               else:  cut[bdt].histos['1PXN-3P'].Fill(res)
                         else:
                            if trueTau.trueN==0:
+                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3P0N'].Fill(res)
                               if tau.cellP==3:
                                  if tau.cellN==0:  cut[bdt].histos['3P0N-3P0N'].Fill(res)
                                  else:  cut[bdt].histos['3P0N-3PXN'].Fill(res)
                               else:  cut[bdt].histos['3P0N-1P'].Fill(res)
                            else:
-                              if tau.PanTauFlag==True and (tau.cellP!=3 or tau.cellN==0):
-                                 cut[bdt].histos['Pantau'].Fill(res)
+                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3PXN'].Fill(res)
                               if tau.cellP==3:
                                  if tau.cellN==0:  cut[bdt].histos['3PXN-3P0N'].Fill(res)
-                                 else:  cut[bdt].histos['3PXN-3PXN'].Fill(res)
+                                 else:  
+                                    cut[bdt].histos['3PXN-3PXN'].Fill(res)
+                                    cut[bdt].histos['2D_neutral'].Fill(neutralRes,tau.nClusters)
+                                    cut[bdt].histos['3Pneutral'].Fill(neutralRes)
                               else:  cut[bdt].histos['3PXN-1P'].Fill(res)
       first=False
 

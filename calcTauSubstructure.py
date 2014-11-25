@@ -19,6 +19,33 @@ from ROOT import gDirectory
 from TauClass import Tau
 
 ###################################################################################
+"""
+def pi0Cut(BDTScore,eta,nProng,shift):
+    if nProng==1:
+        if(abs(eta) < 0.8):
+            if(BDTScore < -0.06 + shift):return False
+        elif(abs(eta) < 1.4):
+            if(BDTScore< -0.14 + shift):return False
+        elif(abs(eta) < 1.5):
+            if(BDTScore< + 0.01 + shift): return False
+        elif(abs(eta) < 1.9):
+            if(BDTScore < -0.1 + shift): return False
+        elif(abs(eta) < 9.9):
+            if(BDTScore < -0.01 + shift): return False
+    elif nProng>1:
+        if(abs(eta) < 0.8):
+            if(BDTScore < +0.43 + shift): return False
+        elif(abs(eta) < 1.4):
+            if(BDTScore < +0.51 + shift): return False
+        elif(abs(eta) < 1.5):
+            if(BDTScore < +0.48 + shift): return False
+        elif(abs(eta) < 1.9):
+            if(BDTScore < +0.66 + shift): return False
+        elif(abs(eta) < 9.9):
+            if(BDTScore < +0.65 + shift): return False 
+    if shift<-1: print "shift me sideways with a pitchfork like %f"%shift
+    return True
+"""
 def pi0Cut(BDTScore,eta,nProng,shift):
     if nProng==1:
         if(abs(eta) < 0.8):
@@ -31,7 +58,7 @@ def pi0Cut(BDTScore,eta,nProng,shift):
             if(BDTScore < 0.47 + shift): return False
         elif(abs(eta) < 9.9):
             if(BDTScore < 0.54 + shift): return False
-    elif nProng==3:
+    elif nProng>1:
         if(abs(eta) < 0.8):
             if(BDTScore < +0.47 + shift): return False
         elif(abs(eta) < 1.4):
@@ -44,6 +71,7 @@ def pi0Cut(BDTScore,eta,nProng,shift):
             if(BDTScore < +0.50 + shift): return False 
     if shift<-1: print "shift me sideways with a pitchfork like %f"%shift
     return True
+
 
 ###################################################################################
 
@@ -75,15 +103,19 @@ def TauSubstruct(ch,flux,Cutvalue):
         # create TLV for 4vec sum (all + visible)    
         cellSum = ROOT.TLorentzVector(0., 0.,0.,0.,)
         neutralSum = ROOT.TLorentzVector(0., 0.,0.,0.,)
+        testSum = ROOT.TLorentzVector(0., 0.,0.,0.,)
         neutralLead = ROOT.TLorentzVector(0., 0.,0.,0.,)
         nProng=0
         nPi0=0
+
+        cellBased = ROOT.TLorentzVector(0., 0.,0.,0.,)
+        cellBased.SetPtEtaPhiM(ch.tau_pi0Bonn_visTau_pt[i],ch.tau_pi0Bonn_visTau_eta[i],ch.tau_pi0Bonn_visTau_phi[i],0)
+        panTauPt =  ch.tau_pantau_CellBased_final_pt[i]
+
         
         #find axis
         axis =ROOT.TLorentzVector(0.,0.,0.,0.)
         axis.SetPtEtaPhiM(ch.tau_pt[i],ch.tau_calcVars_interAxis_eta[i],ch.tau_calcVars_interAxis_phi[i],0.)
-
-
         # add charged EFOs 
         nProng=ch.tau_pantau_CellBased_ChargedEFOs_pt[i].size()
 
@@ -100,7 +132,14 @@ def TauSubstruct(ch,flux,Cutvalue):
             if pi0Cut(BDTScore,eta,nProng,0.0) and ptCut(pt,eta,0.0): 
                 neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
                 neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
-                if neutralCluster.DeltaR(axis)<0.2:nPi0+=1
+                if neutralCluster.DeltaR(axis)<0.2:
+                    nPi0+=1
+                    testSum+=neutralCluster
+        if abs(testSum.Pt()-ch.tau_pi0Bonn_sumPi0_pt[i])>100:
+            print 'oi neutrals aint kosher ',testSum.Pt(),' - ',ch.tau_pi0Bonn_sumPi0_pt[i]
+            print 'nPi0 :',nPi0,', or:',ch.tau_pi0Bonn_nPi0[i],'. at:',axis.Eta(),', or:',ch.tau_pi0Bonn_sumPi0_eta[i]
+            print 'also...',len(ch.tau_pi0Bonn_Pi0Cluster_pt[i]),' ',ch.tau_pi0Bonn_nPi0Cluster[i]
+            continue
         pi0s=[]
         #loop over neturals to add to pi0s
         for j in range(0,ch.tau_pi0Bonn_Pi0Cluster_pt[i].size()):
@@ -109,12 +148,12 @@ def TauSubstruct(ch,flux,Cutvalue):
             eta=ch.tau_pi0Bonn_Pi0Cluster_eta[i][j]
 
             #regular cuts
-            if flux>-1 and flux<1 and pi0Cut(BDTScore,eta,nProng,flux) and ptCut(pt,eta,Cutvalue):
+            if flux > (-1.1) and pi0Cut(BDTScore,eta,nProng,flux) and ptCut(pt,eta,Cutvalue):
                 neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
                 neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
                 if neutralCluster.DeltaR(axis)<0.2: pi0s.append(neutralCluster)
             #public
-            elif flux<-1 and ptCut(pt,eta,Cutvalue):
+            elif flux <= -1.1 and ptCut(pt,eta,Cutvalue):
                 neutralCluster=ROOT.TLorentzVector(0.,0.,0.,0.)
                 neutralCluster.SetPtEtaPhiM(ch.tau_pi0Bonn_Pi0Cluster_pt[i][j],ch.tau_pi0Bonn_Pi0Cluster_eta[i][j],ch.tau_pi0Bonn_Pi0Cluster_phi[i][j],0)
                 if neutralCluster.DeltaR(axis)<0.2: pi0s.append(neutralCluster)
@@ -122,20 +161,22 @@ def TauSubstruct(ch,flux,Cutvalue):
 
         for pi in pi0s:
             #add to vectors
-            cellSum+=neutralCluster
-            neutralSum+=neutralCluster
+            cellSum+=pi
+            neutralSum+=pi
             #if highest pt make it lead
-            if neutralCluster.Pt()>neutralLead.Pt():neutralLead=neutralCluster
+            if pi.Pt()>neutralLead.Pt():neutralLead=pi
         # now we have visible Pt, Et, etc. for this tau
         cellTau=Tau(cellSum.Pt(),cellSum.Eta(),cellSum.Phi(),0)
         cellTau.cellP=nProng
         cellTau.cellN=nPi0
         cellTau.cellPt=ch.tau_pi0Bonn_visTau_pt[i]
         cellTau.nClusters=len(pi0s)
-        if nPi0>0:
+        cellTau.cellTau=cellBased
+        cellTau.panTauPt=panTauPt
+        if len(pi0s)>0:
             cellTau.cellSum=neutralSum.Pt()        
             cellTau.cellLead=neutralLead.Pt()
-        if ch.tau_pantau_CellBased_RecoModePanTau==4:cellTau.PanTauFlag==True
+        cellTau.PanTauID=ch.tau_pantau_CellBased_RecoModePanTau[i]
         if ch.tau_JetBDTSigTight[i]>0:cellTau.BDTtight=True
         if ch.tau_JetBDTSigMedium[i]>0:cellTau.BDTmedium=True
         if ch.tau_JetBDTSigLoose[i]>0:cellTau.BDTloose=True
