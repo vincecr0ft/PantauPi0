@@ -16,12 +16,27 @@ import sys
 gROOT.ProcessLine(".L loader.C+")
 
 
-# Open files
+"""# Open files
 files=sys.argv[-1].split(',')
 ch = TChain('tau')
+#print "this is batch %i"%int(files[0])
+batchid=files[0]
+del files[0]
+
 for filename in files:
    ch.Add(filename)
    print "adding %s to inputs" % filename
+"""
+# Open files
+inputhere=sys.argv[-1].split(',')
+batchid=inputhere[0]
+ch = TChain('tau')
+print "this is batch %i"%int(batchid)
+
+thisfile='input'+batchid+'.txt'
+for line in open(thisfile):
+   ch.Add(line[:-1])
+   print "adding %s to inputs" % line
 
 ch.SetBranchStatus("*",0)
 ch.SetBranchStatus("mc_*",1)
@@ -44,7 +59,7 @@ plots=['1P0N-1P0N','1P0N-1P1N','1P0N-1PXN','1P0N-3P',
 
 
 
-output = TFile('resolutionHistos.root','RECREATE')
+output = TFile("resolutionHistos"+batchid+".root",'RECREATE')
 
 
 for cut in cuts:
@@ -108,13 +123,6 @@ for jentry in xrange( entries ):
                         elif trueTau.trueLead<10. and trueTau.trueN>0:
                            trueTau.trueN=0
 
-                        #check nominal values
-                        if first:
-                           cellRes=(tau.cellPt-trueTau.pt)/trueTau.pt                     
-                           cut[bdt].histos['cellres'].Fill(res-cellRes)
-                           cut[bdt].histos['cellbased'].Fill((tau.cellTau.Pt()-trueTau.pt)/trueTau.pt)
-                           cut[bdt].histos['PanTau'].Fill((tau.panTauPt-trueTau.pt)/trueTau.pt)
-
                         #set Cell ID
                         if tau.cellP==1:
                            if tau.cellN==0:tau.CellID=0
@@ -125,16 +133,42 @@ for jentry in xrange( entries ):
                            else: tau.CellID=4
                         else: tau.CellID=5
 
+                        #check nominal values
+                        if first:
+                           cellRes=(tau.cellPt-trueTau.pt)/trueTau.pt                     
+                           cut[bdt].histos['cellres'].Fill(res-cellRes)
+                           cut[bdt].histos['cellbased'].Fill((tau.cellTau.Pt()-trueTau.pt)/trueTau.pt)
+                           cut[bdt].histos['PanTau'].Fill((tau.panTauPt-trueTau.pt)/trueTau.pt)
+                           panTauRes=(tau.panTauPt-trueTau.pt)/trueTau.pt
+
+                           cut[bdt].histos['PanTau_CellBased'].Fill(res,panTauRes)
+                           if trueTau.trueP==1:
+                              if trueTau.trueN==0:
+                                 if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P0N'].Fill(panTauRes)
+                                 else: cut[bdt].histos['NonMiss'].Fill(panTauRes)
+                              elif trueTau.trueN==1:
+                                 if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P1N'].Fill(panTauRes)
+                                 else: cut[bdt].histos['NonMiss'].Fill(panTauRes)
+                              else:
+                                 if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1PXN'].Fill(panTauRes)
+                                 else: cut[bdt].histos['NonMiss'].Fill(panTauRes)
+                           else:
+                              if trueTau.trueN==0:
+                                 if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3P0N'].Fill(panTauRes)
+                                 else: cut[bdt].histos['NonMiss'].Fill(panTauRes)
+                              else:
+                                 if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3PXN'].Fill(panTauRes)
+                                 else: cut[bdt].histos['NonMiss'].Fill(panTauRes)
+
+                        #check Pi0 fluctuations
                         if trueTau.trueP==1:
                            if trueTau.trueN==0:
-                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P0N'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0: cut[bdt].histos['1P0N-1P0N'].Fill(res)
                                  elif tau.cellN==1:cut[bdt].histos['1P0N-1P1N'].Fill(res)
                                  else:  cut[bdt].histos['1P0N-1PXN'].Fill(res)
                               else:  cut[bdt].histos['1P0N-3P'].Fill(res)
                            elif trueTau.trueN==1:
-                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1P1N'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0:  cut[bdt].histos['1P1N-1P0N'].Fill(res)
                                  elif tau.cellN==1: 
@@ -143,7 +177,6 @@ for jentry in xrange( entries ):
                                  else:  cut[bdt].histos['1P1N-1PXN'].Fill(res)
                               else:  cut[bdt].histos['1P1N-3P'].Fill(res)
                            else:
-                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss1PXN'].Fill(res)
                               if tau.cellP==1:
                                  if tau.cellN==0:  cut[bdt].histos['1PXN-1P0N'].Fill(res)
                                  elif tau.cellN==1: cut[bdt].histos['1PXN-1P1N'].Fill(res)
@@ -151,13 +184,11 @@ for jentry in xrange( entries ):
                               else:  cut[bdt].histos['1PXN-3P'].Fill(res)
                         else:
                            if trueTau.trueN==0:
-                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3P0N'].Fill(res)
                               if tau.cellP==3:
                                  if tau.cellN==0:  cut[bdt].histos['3P0N-3P0N'].Fill(res)
                                  else:  cut[bdt].histos['3P0N-3PXN'].Fill(res)
                               else:  cut[bdt].histos['3P0N-1P'].Fill(res)
                            else:
-                              if tau.PanTauID!=tau.CellID: cut[bdt].histos['Miss3PXN'].Fill(res)
                               if tau.cellP==3:
                                  if tau.cellN==0:  cut[bdt].histos['3PXN-3P0N'].Fill(res)
                                  else:  

@@ -111,7 +111,6 @@ def TauSubstruct(ch,flux,Cutvalue):
         cellBased = ROOT.TLorentzVector(0., 0.,0.,0.,)
         cellBased.SetPtEtaPhiM(ch.tau_pi0Bonn_visTau_pt[i],ch.tau_pi0Bonn_visTau_eta[i],ch.tau_pi0Bonn_visTau_phi[i],0)
         panTauPt =  ch.tau_pantau_CellBased_final_pt[i]
-
         
         #find axis
         axis =ROOT.TLorentzVector(0.,0.,0.,0.)
