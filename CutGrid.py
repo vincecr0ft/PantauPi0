@@ -23,11 +23,11 @@ def CutList():
     s={"name":"Public-ExtraLoose","BDTvalue":-2,"Cutvalue":2000} 
     t={"name":"Tight-ExtraLoose","BDTvalue":0.5,"Cutvalue":2000} 
     
-    u={"name":"Normal-Tight","BDTvalue":0.0,"Cutvalue":-500} 
-    v={"name":"Loose-Tight","BDTvalue":-0.5,"Cutvalue":-500} 
-    w={"name":"ExtraLoose-Tight","BDTvalue":-1.0,"Cutvalue":-500} 
-    x={"name":"Public-Tight","BDTvalue":-2,"Cutvalue":-500} 
-    y={"name":"Tight-Tight","BDTvalue":0.5,"Cutvalue":-500} 
+    u={"name":"Normal-Tight","BDTvalue":0.0,"Cutvalue":-250} 
+    v={"name":"Loose-Tight","BDTvalue":-0.5,"Cutvalue":-250} 
+    w={"name":"ExtraLoose-Tight","BDTvalue":-1.0,"Cutvalue":-250} 
+    x={"name":"Public-Tight","BDTvalue":-2,"Cutvalue":-250} 
+    y={"name":"Tight-Tight","BDTvalue":0.5,"Cutvalue":-250} 
 
 
 #cuts=
