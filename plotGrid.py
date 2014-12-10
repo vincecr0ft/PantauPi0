@@ -61,10 +61,10 @@ plots={}
 Grid1=TH2F('grid1','grid1',5,0,5,5,0,5)
 Grid2=TH2F('grid2','grid2',5,0,5,5,0,5)
 for cut in cuts:
-   cut[cut['name']]=TH1F(cut['name'],cut['name'],120,-1.,1.)
-   cut['veto']=TH1F(cut['name']+' veto',cut['name']+' veto',120,-1.,1.)
+   cut[cut['name']]=TH1F(cut['name'],cut['name'],101,-1.01,1.01)
+   cut['veto']=TH1F(cut['name']+' veto',cut['name']+' veto',101,-1.01,1.01)
    for bdt in BDTs:
-      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,120,-1.,1.)
+      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,101,-1.01,1.01)
       for mode in modes:
          plots[mode]=infile.Get(mode+'_'+cut['name']+'_'+bdt)
          cut[bdt].Add(plots[mode])

@@ -32,9 +32,9 @@ modes={'1P0N-1P0N':2,'1P0N-1P1N':4,'1P0N-1PXN':6,'1P0N-3P':8,
 BDTs=['BDTnone','BDTloose','BDTmedium','BDTtight','ExoticVeto']
 plots={}
 for cut in cuts:
-   cut[cut['name']]=TH1F(cut['name'],cut['name'],120,-1.,1.)
+   cut[cut['name']]=TH1F(cut['name'],cut['name'],101,-1.01,1.01)
    for bdt in BDTs:
-      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,120,-1.,1.)
+      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,101,-1.01,1.01)
       for mode in modes:
          plots[mode]=infile.Get(mode+'_'+cut['name']+'_'+bdt)
  #        plots[mode].SetFillColor(modes[mode])

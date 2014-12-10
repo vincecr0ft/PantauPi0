@@ -51,14 +51,14 @@ BDTs=['BDTnone','BDTloose','BDTmedium','BDTtight','ExoticVeto']
 plots={}
 inclusive={}
 for cut in cuts:
-   cut[cut['name']]=TH1F(cut['name'],cut['name'],120,-1.,1.)
+   cut[cut['name']]=TH1F(cut['name'],cut['name'],101,-1.01,1.01)
    for bdt in BDTs:
-      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,120,-1.,1.)
+      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,101,-1.01,1.01)
       for mode in modes:
          plots[mode]=infile.Get(mode+'_'+cut['name']+'_'+bdt)
          plots[mode].SetStats(0)
          cut[bdt].Add(plots[mode])
-      inclusive['inc_3PXN '+cut['name']+'_'+bdt]=TH1F('inc_3PXN_'+cut['name']+'_'+bdt,'3PXN_'+cut['name']+'_'+bdt,120,-1.,1.)
+      inclusive['inc_3PXN '+cut['name']+'_'+bdt]=TH1F('inc_3PXN_'+cut['name']+'_'+bdt,'3PXN_'+cut['name']+'_'+bdt,101,-1.01,1.01)
       inclusive['inc_3PXN '+cut['name']+'_'+bdt].Add(plots['3PXN-3PXN'])
       inclusive['stack_3PXN '+cut['name']+'_'+bdt]=THStack('stack','3PXN '+cut['name']+'_'+bdt)
       inclusive['stack_3PXN '+cut['name']+'_'+bdt].Add(plots['3PXN-3PXN'])

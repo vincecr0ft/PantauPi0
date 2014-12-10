@@ -51,14 +51,14 @@ BDTs=['BDTnone']
 plots={}
 inclusive={}
 for cut in cuts:
-   cut[cut['name']]=TH1F(cut['name'],cut['name'],120,-1.,1.)
+   cut[cut['name']]=TH1F(cut['name'],cut['name'],101,-1.01,1.01)
    for bdt in BDTs:
-      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,120,-1.,1.)
+      cut[bdt]=TH1F(cut['name']+'_'+bdt,cut['name']+'_'+bdt,101,-1.01,1.01)
       for mode in modes:
          plots[mode]=infile.Get(mode+'_'+cut['name']+'_'+bdt)
          plots[mode].SetStats(0)
          cut[bdt].Add(plots[mode])
-      inclusive['inc_1P1N '+cut['name']+'_'+bdt]=TH1F('inc_1P1N_'+cut['name']+'_'+bdt,'1P1N_'+cut['name']+'_'+bdt,120,-1.,1.)
+      inclusive['inc_1P1N '+cut['name']+'_'+bdt]=TH1F('inc_1P1N_'+cut['name']+'_'+bdt,'1P1N_'+cut['name']+'_'+bdt,101,-1.01,1.01)
       inclusive['inc_1P1N '+cut['name']+'_'+bdt].Add(plots['1P1N-1P1N'])
       inclusive['stack_1P1N '+cut['name']+'_'+bdt]=THStack('stack','1P1N '+cut['name']+'_'+bdt)
       inclusive['stack_1P1N '+cut['name']+'_'+bdt].Add(plots['1P1N-1P1N'])

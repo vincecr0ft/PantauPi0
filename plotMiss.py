@@ -32,7 +32,7 @@ modes={'1P0N-1P0N':2,'1P0N-1P1N':4,'1P0N-1PXN':6,'1P0N-3P':8,
 BDTs=['BDTnone']
 plots={}
 for cut in cuts:
-   cut[cut['name']]=TH1F(cut['name'],cut['name'],120,-1.,1.)
+   cut[cut['name']]=TH1F(cut['name'],cut['name'],101,-1.01,1.01)
    for bdt in BDTs:
       plots['1P0N']=infile.Get('Miss1P0N'+cut['name']+'_'+bdt)
       plots['1P1N']=infile.Get('Miss1P1N'+cut['name']+'_'+bdt)
